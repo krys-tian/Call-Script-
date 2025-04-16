@@ -1,0 +1,227 @@
+<!-- Full updated HTML with delete feature -->
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Standaryzacja rozmów - Veritas 2025</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      background-color: #ffffff;
+      color: #111111;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    h1 {
+      margin-top: 2rem;
+    }
+    details.section {
+      margin: 1rem 0;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      padding: 1rem;
+      background-color: #fafafa;
+      position: relative;
+      cursor: grab;
+    }
+    summary {
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+    }
+    summary::before {
+      content: url('data:image/svg+xml;utf8,<svg fill="none" stroke="black" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>');
+      display: inline-block;
+      margin-right: 0.5rem;
+    }
+    ul {
+      margin-top: 0.5rem;
+      list-style: none;
+      padding-left: 0;
+    }
+    li {
+      margin-bottom: 0.5rem;
+    }
+    input[type="checkbox"] {
+      margin-right: 0.5rem;
+    }
+    .section-buttons {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: none;
+      gap: 0.5rem;
+    }
+    .section-buttons button {
+      background-color: #444;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 0.25rem 0.5rem;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    details.section:hover .section-buttons {
+      display: flex;
+    }
+    .sidebar {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background-color: #f5f5f5;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      width: 250px;
+      z-index: 1000;
+    }
+    .sidebar textarea {
+      width: 100%;
+      height: 120px;
+      resize: none;
+      font-family: inherit;
+      padding: 0.5rem;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .sidebar input, .sidebar button {
+      margin-top: 0.5rem;
+      width: 100%;
+      padding: 0.5rem;
+      font-size: 14px;
+    }
+    #container {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <strong>Komentarz:</strong>
+    <textarea id="commentBox" placeholder="Wpisz notatkę..."></textarea>
+    <hr />
+    <strong>Dodaj nową sekcję:</strong>
+    <input id="newTitle" type="text" placeholder="Tytuł sekcji" />
+    <textarea id="newTasks" placeholder="Lista zadań - jedno na linię..."></textarea>
+    <button id="addSection">Dodaj sekcję</button>
+  </div>
+
+  <h1>📞 Standaryzacja rozmów telefonicznych z opiekunkami – Veritas 2025</h1>
+  <div id="container"></div>
+
+  <script>
+    const container = document.getElementById('container');
+    const commentBox = document.getElementById('commentBox');
+    const newTitle = document.getElementById('newTitle');
+    const newTasks = document.getElementById('newTasks');
+    const addSection = document.getElementById('addSection');
+
+    // Drag & drop
+    let draggedItem = null;
+    container.addEventListener('dragstart', e => {
+      if (e.target.tagName === 'DETAILS') {
+        draggedItem = e.target;
+        e.dataTransfer.effectAllowed = 'move';
+      }
+    });
+    container.addEventListener('dragover', e => {
+      e.preventDefault();
+      const afterElement = Array.from(container.children).find(
+        child => child !== draggedItem && e.clientY < child.getBoundingClientRect().top + child.offsetHeight / 2
+      );
+      if (afterElement == null) {
+        container.appendChild(draggedItem);
+      } else {
+        container.insertBefore(draggedItem, afterElement);
+      }
+    });
+
+    // Komentarze localStorage
+    commentBox.value = localStorage.getItem('veritas-comment') || '';
+    commentBox.addEventListener('input', () => {
+      localStorage.setItem('veritas-comment', commentBox.value);
+    });
+
+    // Dodawanie nowej sekcji
+    addSection.addEventListener('click', () => {
+      const title = newTitle.value.trim();
+      const tasks = newTasks.value.trim().split('\n').filter(t => t);
+      if (!title || tasks.length === 0) return alert('Wypełnij wszystkie pola.');
+      const section = createSection(title, tasks);
+      container.appendChild(section);
+      newTitle.value = '';
+      newTasks.value = '';
+    });
+
+    // Tworzenie sekcji
+    function createSection(title, tasks) {
+      const details = document.createElement('details');
+      details.classList.add('section');
+      details.setAttribute('draggable', 'true');
+      details.open = true;
+
+      const summary = document.createElement('summary');
+      summary.textContent = title;
+      details.appendChild(summary);
+
+      const ul = document.createElement('ul');
+      tasks.forEach(task => {
+        const li = document.createElement('li');
+        li.innerHTML = `<input type="checkbox">${task}`;
+        ul.appendChild(li);
+      });
+      details.appendChild(ul);
+
+      const btnBox = document.createElement('div');
+      btnBox.className = 'section-buttons';
+
+      const editBtn = document.createElement('button');
+      editBtn.textContent = 'Edytuj';
+      editBtn.onclick = () => editSection(details);
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.textContent = 'Usuń';
+      deleteBtn.onclick = () => {
+        if (confirm('Czy na pewno chcesz usunąć tę sekcję?')) {
+          details.remove();
+        }
+      };
+
+      btnBox.appendChild(editBtn);
+      btnBox.appendChild(deleteBtn);
+      details.appendChild(btnBox);
+
+      return details;
+    }
+
+    // Edycja sekcji
+    function editSection(section) {
+      const summary = section.querySelector('summary');
+      const title = prompt('Edytuj tytuł sekcji:', summary.textContent.trim());
+      if (title) summary.textContent = title;
+
+      const tasks = Array.from(section.querySelectorAll('li')).map(li => li.textContent.trim());
+      const updated = prompt('Edytuj zadania (jedno na linię):', tasks.join('\n'));
+      if (updated !== null) {
+        const ul = section.querySelector('ul');
+        ul.innerHTML = '';
+        updated.split('\n').forEach(t => {
+          if (t.trim()) {
+            const li = document.createElement('li');
+            li.innerHTML = `<input type="checkbox">${t.trim()}`;
+            ul.appendChild(li);
+          }
+        });
+      }
+    }
+  </script>
+</body>
+</html>
