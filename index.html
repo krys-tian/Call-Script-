@@ -101,25 +101,59 @@
       gap: 1rem;
     }
     #editModal {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      padding: 1rem;
-      box-shadow: 0 0 10px rgba(0,0,0,0.3);
-      border-radius: 8px;
-      display: none;
-      flex-direction: column;
-      gap: 0.5rem;
-      z-index: 2000;
-      width: 300px;
-    }
-    #editModal input, #editModal textarea, #editModal button {
-      font-size: 14px;
-      padding: 0.5rem;
-      width: 100%;
-    }
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #ffffff;
+  padding: 2rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  display: none;
+  flex-direction: column;
+  gap: 1rem;
+  z-index: 2000;
+  width: 360px;
+  max-width: 90%;
+  border: 1px solid #e5e7eb;
+  transition: all 0.3s ease-in-out;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+#editModal input,
+#editModal textarea {
+  font-size: 14px;
+  padding: 0.75rem;
+  width: 100%;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background: #f9fafb;
+  transition: border-color 0.2s;
+}
+
+#editModal input:focus,
+#editModal textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  background-color: #ffffff;
+}
+
+#editModal button {
+  font-size: 14px;
+  padding: 0.75rem;
+  width: 100%;
+  border-radius: 6px;
+  border: none;
+  background-color: #2563eb;
+  color: #ffffff;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+#editModal button:hover {
+  background-color: #1e40af;
+}
   </style>
 </head>
 <body>
