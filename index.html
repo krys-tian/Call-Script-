@@ -1,4 +1,3 @@
-<!-- Full updated HTML with delete feature -->
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -101,6 +100,26 @@
       flex-direction: column;
       gap: 1rem;
     }
+    #editModal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 1rem;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      border-radius: 8px;
+      display: none;
+      flex-direction: column;
+      gap: 0.5rem;
+      z-index: 2000;
+      width: 300px;
+    }
+    #editModal input, #editModal textarea, #editModal button {
+      font-size: 14px;
+      padding: 0.5rem;
+      width: 100%;
+    }
   </style>
 </head>
 <body>
@@ -114,6 +133,13 @@
     <button id="addSection">Dodaj sekcję</button>
   </div>
 
+  <div id="editModal">
+    <input type="text" id="editTitle" placeholder="Tytuł sekcji" />
+    <textarea id="editTasks" placeholder="Lista zadań - jedno na linię..."></textarea>
+    <button id="saveEdit">Zapisz zmiany</button>
+    <button onclick="document.getElementById('editModal').style.display='none'">Anuluj</button>
+  </div>
+
   <h1>📞 Standaryzacja rozmów telefonicznych z opiekunkami – Veritas 2025</h1>
   <div id="container"></div>
 
@@ -123,6 +149,13 @@
     const newTitle = document.getElementById('newTitle');
     const newTasks = document.getElementById('newTasks');
     const addSection = document.getElementById('addSection');
+
+    const editModal = document.getElementById('editModal');
+    const editTitle = document.getElementById('editTitle');
+    const editTasks = document.getElementById('editTasks');
+    const saveEdit = document.getElementById('saveEdit');
+
+    let currentEditSection = null;
 
     // Drag & drop
     let draggedItem = null;
@@ -144,13 +177,11 @@
       }
     });
 
-    // Komentarze localStorage
     commentBox.value = localStorage.getItem('veritas-comment') || '';
     commentBox.addEventListener('input', () => {
       localStorage.setItem('veritas-comment', commentBox.value);
     });
 
-    // Dodawanie nowej sekcji
     addSection.addEventListener('click', () => {
       const title = newTitle.value.trim();
       const tasks = newTasks.value.trim().split('\n').filter(t => t);
@@ -161,7 +192,6 @@
       newTasks.value = '';
     });
 
-    // Tworzenie sekcji
     function createSection(title, tasks) {
       const details = document.createElement('details');
       details.classList.add('section');
@@ -185,7 +215,7 @@
 
       const editBtn = document.createElement('button');
       editBtn.textContent = 'Edytuj';
-      editBtn.onclick = () => editSection(details);
+      editBtn.onclick = () => openEditModal(details);
 
       const deleteBtn = document.createElement('button');
       deleteBtn.textContent = 'Usuń';
@@ -202,26 +232,32 @@
       return details;
     }
 
-    // Edycja sekcji
-    function editSection(section) {
+    function openEditModal(section) {
+      currentEditSection = section;
       const summary = section.querySelector('summary');
-      const title = prompt('Edytuj tytuł sekcji:', summary.textContent.trim());
-      if (title) summary.textContent = title;
-
       const tasks = Array.from(section.querySelectorAll('li')).map(li => li.textContent.trim());
-      const updated = prompt('Edytuj zadania (jedno na linię):', tasks.join('\n'));
-      if (updated !== null) {
-        const ul = section.querySelector('ul');
-        ul.innerHTML = '';
-        updated.split('\n').forEach(t => {
-          if (t.trim()) {
-            const li = document.createElement('li');
-            li.innerHTML = `<input type="checkbox">${t.trim()}`;
-            ul.appendChild(li);
-          }
-        });
-      }
+      editTitle.value = summary.textContent.trim();
+      editTasks.value = tasks.join('\n');
+      editModal.style.display = 'flex';
     }
+
+    saveEdit.addEventListener('click', () => {
+      if (!currentEditSection) return;
+      const newTitle = editTitle.value.trim();
+      const newTasks = editTasks.value.trim().split('\n').filter(t => t);
+      if (!newTitle || newTasks.length === 0) return alert('Uzupełnij wszystkie pola.');
+
+      const summary = currentEditSection.querySelector('summary');
+      const ul = currentEditSection.querySelector('ul');
+      summary.textContent = newTitle;
+      ul.innerHTML = '';
+      newTasks.forEach(t => {
+        const li = document.createElement('li');
+        li.innerHTML = `<input type="checkbox">${t}`;
+        ul.appendChild(li);
+      });
+      editModal.style.display = 'none';
+    });
   </script>
 </body>
 </html>
